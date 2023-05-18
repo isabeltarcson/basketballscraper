@@ -1,0 +1,39 @@
+import pandas as pd
+import requests
+from bs4 import BeautifulSoup
+from datetime import date
+
+url = 'https://www.ncaa.com/rankings/basketball-men/d1/ncaa-mens-basketball-net-rankings'
+
+html = requests.get(url).text
+###creating beautifulsoup object and finding the table in the html
+soup = BeautifulSoup(html, 'html.parser')
+columns = []
+stats = soup.find('div', class_="layout--has-sidebar")
+tables = stats.find('table', class_="sticky")
+
+today = str(date.today())
+
+df_list = []
+### getting all the rows and appending them to the list
+for row in tables.tbody.find_all('tr'):
+    columns = row.find_all('td')
+    if (columns != []):
+        rank = columns[0].text.strip()
+        previous = columns[1].text.strip()
+        school = columns[2].text.strip()
+        con = columns[3].text.strip()
+        record = columns[4].text.strip()
+        road = columns[5].text.strip()
+        neut = columns[6].text.strip()
+        home = columns[7].text.strip()
+        q1 = columns[8].text.strip()
+        q2 = columns[9].text.strip()
+        q3 = columns[10].text.strip()
+        q4 = columns[11].text.strip()
+        data_dict = {'Rank': rank, 'Previous': previous, 'School': school, 'Conference': con, 'Record': ' '+record, 'Road': ' '+road, 'Neutral': ' '+neut, 'Home': ' '+home, 'Quad 1': ' '+q1, 'Quad 2': ' '+q2, 'Quad 3': ' '+q3, 'Quad 4': ' '+q4}
+        df_list.append(data_dict)
+### Turning list of dictionaries into a pandas dataframe
+dfdf = pd.DataFrame(df_list)
+### writing dataframe to csv
+dfdf.to_csv('D1 Mens Basketball'+today+'.csv',sep=',')
